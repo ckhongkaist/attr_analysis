@@ -4,6 +4,9 @@
 #include <math.h>
 #include <stdlib.h>
 #include <set>
+#include <map>
+#include <iostream>
+#include <vector>
 
 using namespace std;
 
@@ -25,7 +28,6 @@ void printState(state_t tState) {
         else printf("%d", 0);
         flag_bit = flag_bit >> 1;
     }
-    printf("\n");
 }
 
 state_t updateState(state_t c){
@@ -56,18 +58,74 @@ int main (void) {
     }
     */
 
+    map <state_t,int> m;
+    pair <map<state_t,int>::iterator, bool> pr_m;
+    set< set<state_t> > Attrs;
+
     for (int i=0; i<num_total_states; i++) {
         state_t temp = i;
         set <state_t> s;
-        pair <set<state_t>::iterator, bool> pr;
-        pr = s.insert(temp);
-        while(pr.second == true) {
-            printState(temp);
+        pair <set<state_t>::iterator, bool> pr_s;
+        vector<state_t> path; //a path
+        set<state_t> attr; //attractor of the path
+
+        pr_s = s.insert(temp);
+        pr_m = m.insert(pair<state_t,int>(temp,1));
+        if (!pr_m.second)
+            m[temp]++;
+       
+        while(pr_s.second) {
+            //printState(temp);
+            //printf("\n");
+            path.push_back(temp);
             temp = updateState(temp);
-            pr = s.insert(temp);
+            pr_s = s.insert(temp);
+            pr_m = m.insert(pair<state_t,int>(temp,1));
+            if (pr_s.second && !pr_m.second)
+                m[temp]++;
         }
-        printf("\n");
+        /* Extract attractors */
+
+        state_t s_attr = 0;
+        vector<state_t>::size_type it;
+        for (it=0; it<path.size(); ++it){
+            if (path[it] == temp) {
+                s_attr = it;
+                break;
+            }
+        }
+        
+        for (it=s_attr; it!=path.size(); ++it){
+            attr.insert(path[it]);
+        }
+        Attrs.insert(attr);
+
+        //printf("\n");
+    }
+    
+    printf("\n*****State pairs*****\n");
+    map<state_t,int>::iterator iter;
+    for (iter=m.begin(); iter !=m.end(); ++iter) {
+        printf("(");
+        printState((state_t)iter->first);
+        printf(",%d)\n", (int)iter->second);
     }
 
+   
+    printf("\n*****Attractors*****\n");
+    set< set<state_t> >::iterator it;
+    for (it = Attrs.begin(); it !=Attrs.end(); ++it) {
+        for (set<state_t>::iterator it2 = (*it).begin(); it2!=(*it).end(); ++it2) {
+            printState(*it2);
+            printf(" -> ");
+        }
+        printState(*(*it).begin());
+        printf("\n");
+    }
+    
+    /*
+    for (set< vector<state_t> >::iterator it = Attrs.begin(); it !=Attrs.end(); ++it)
+        cout << *it << endl;
+    */
     return 0;
 }
