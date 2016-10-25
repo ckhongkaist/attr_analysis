@@ -58,9 +58,11 @@ int main (void) {
     }
     */
 
-    map <state_t,int> m;
+    map <state_t,int> m; // for hubs (i.e., pseudo attractors)
     pair <map<state_t,int>::iterator, bool> pr_m;
     set< set<state_t> > Attrs;
+    map < set<state_t>,int > Attrs_maxdepth;
+    pair <map < set<state_t>,int>::iterator, bool> pr_am;
 
     for (int i=0; i<num_total_states; i++) {
         state_t temp = i;
@@ -99,8 +101,25 @@ int main (void) {
             attr.insert(path[it]);
         }
         Attrs.insert(attr);
+    
+        
+        pr_am = Attrs_maxdepth.insert(pair< set<state_t>,int>(attr,s_attr-1)); 
+
+        if (!pr_am.second) {
+            if (Attrs_maxdepth[attr] < s_attr) {
+                Attrs_maxdepth[attr] = s_attr;
+            }
+        }
 
         //printf("\n");
+        /*
+        vector<state_t>::iterator it__;
+        for (it__=path.begin(); it__ != path.end(); it__++) {
+            printState(*it__);
+            printf(" -> ");
+        }
+        printf("\n");
+        */
     }
     
     printf("\n*****State pairs*****\n");
@@ -122,7 +141,20 @@ int main (void) {
         printState(*(*it).begin());
         printf("\n");
     }
-    
+
+    printf("\n*****Max depth*****\n");
+    map< set<state_t>,int >::iterator it_;
+    for (it_ = Attrs_maxdepth.begin(); it_ != Attrs_maxdepth.end(); ++it_) {
+        for (set<state_t>::iterator it2 = (it_->first).begin(); it2!= (it_->first).end(); ++it2) {
+            printState(*it2);
+            printf(" -> ");
+        }
+        printState(*((it_->first).begin()));
+        printf(" : %d\n", it_->second);  
+    }
+
+
+
     /*
     for (set< vector<state_t> >::iterator it = Attrs.begin(); it !=Attrs.end(); ++it)
         cout << *it << endl;
